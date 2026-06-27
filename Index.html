@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postenlauf Erste Hilfe</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500&display=swap');
+
+  :root {
+    --red:    #D42B2B;
+    --red-light: #F5E8E8;
+    --red-mid: #B02020;
+    --white:  #FFFFFF;
+    --off:    #F8F8F6;
+    --ink:    #1A1A1A;
+    --gray:   #6B6B6B;
+    --border: #E0E0DC;
+    --green:  #2A7A4B;
+    --green-light: #E8F4ED;
+    --yellow: #F5A623;
+    --yellow-light: #FEF6E8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--off);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--red);
+    color: var(--white);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '+';
+    position: absolute;
+    right: -1rem;
+    top: -2rem;
+    font-size: 18rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.07);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 0.5rem;
+  }
+  header h1 {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1.2rem;
+  }
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .meta-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 4px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  /* ── OVERVIEW BAR ── */
+  .overview-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .overview-bar strong { font-weight: 700; }
+  .overview-item {
+    font-size: 0.85rem;
+    color: var(--gray);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .overview-item span { color: var(--ink); font-weight: 600; }
+
+  /* ── MAIN ── */
+  main { max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── ZEITPLAN ── */
+  .timeline-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 0.75rem;
+  }
+  .timeline-section h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+  }
+  .timeline {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 0;
+  }
+  .tl-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--red);
+    padding: 0.6rem 0.5rem 0.6rem 0;
+    border-right: 2px solid var(--border);
+    text-align: right;
+    position: relative;
+  }
+  .tl-time::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+  }
+  .tl-content {
+    padding: 0.5rem 0 0.5rem 1rem;
+    font-size: 0.88rem;
+  }
+  .tl-content strong { display: block; font-weight: 600; }
+  .tl-content small { color: var(--gray); font-size: 0.80rem; }
+
+  /* ── POSTEN GRID ── */
+  .posten-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .posten-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.18s, transform 0.18s;
+  }
+  .posten-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+    transform: translateY(-2px);
+  }
+  .posten-card.expanded { box-shadow: 0 8px 28px rgba(212,43,43,0.14); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .posten-nr {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--red);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .card-title { flex: 1; }
+  .card-title h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .card-title .tag {
+    font-size: 0.72rem;
+    color: var(--gray);
+    margin-top: 0.15rem;
+  }
+  .expand-icon {
+    font-size: 1.2rem;
+    color: var(--gray);
+    transition: transform 0.2s;
+    font-weight: 300;
+    line-height: 1;
+  }
+  .posten-card.expanded .expand-icon { transform: rotate(45deg); color: var(--red); }
+
+  .card-body {
+    display: none;
+    padding: 1rem 1.1rem 1.2rem;
+    border-top: 1px solid var(--red-light);
+  }
+  .posten-card.expanded .card-body { display: block; }
+
+  .info-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .info-pill {
+    background: var(--red-light);
+    border-radius: 4px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--red-mid);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .info-pill.green { background: var(--green-light); color: var(--green); }
+  .info-pill.yellow { background: var(--yellow-light); color: #9A6400; }
+
+  .body-section { margin-bottom: 0.9rem; }
+  .body-section h4 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gray);
+    margin-bottom: 0.4rem;
+  }
+  .body-section p, .body-section li {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: #333;
+  }
+  .body-section ul { padding-left: 1.1rem; }
+  .body-section li { margin-bottom: 0.2rem; }
+
+  .steps { list-style: none; padding: 0; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 0.55rem;
+    font-size: 0.85rem;
+    align-items: flex-start;
+  }
+  .steps li::before {
+    content: counter(step);
+    min-width: 22px;
+    height: 22px;
+    background: var(--red);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+
+  .tip-box {
+    background: var(--yellow-light);
+    border-left: 3px solid var(--yellow);
+    border-radius: 0 4px 4px 0;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.82rem;
+    margin-top: 0.8rem;
+    color: #5A4000;
+  }
+
+  /* ── HINWEISE ── */
+  .hinweise-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .hinweise-section h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; }
+  .hinweise-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .hinweis-box {
+    background: var(--off);
+    border-radius: 6px;
+    padding: 0.9rem;
+    font-size: 0.84rem;
+  }
+  .hinweis-box h4 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--red);
+    margin-bottom: 0.4rem;
+  }
+  .hinweis-box ul { padding-left: 1rem; }
+  .hinweis-box li { margin-bottom: 0.25rem; color: #333; }
+
+  /* ── BEOBACHTUNGSBOGEN ── */
+  .bogen-section {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .bogen-section h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  th {
+    background: var(--red);
+    color: white;
+    padding: 0.55rem 0.7rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.78rem;
+  }
+  td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--off); }
+  .criteria-list { padding-left: 1rem; margin: 0; }
+  .criteria-list li { margin-bottom: 0.15rem; color: #444; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.78rem;
+    color: var(--gray);
+    border-top: 1px solid var(--border);
+  }
+  .cross { color: var(--red); font-weight: 900; }
+
+  @media print {
+    .posten-card .card-body { display: block !important; }
+    .expand-icon { display: none; }
+    .posten-card { break-inside: avoid; }
+    header::before { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .hinweise-grid { grid-template-columns: 1fr; }
+    .timeline { grid-template-columns: 60px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Sekundarschule · Klasse 7–9 · NaTech / Lebenskunde</div>
+  <h1>Postenlauf<br>Erste Hilfe</h1>
+  <div class="header-meta">
+    <span class="meta-badge">⏱ 80 Minuten</span>
+    <span class="meta-badge">👥 Alter 12–15</span>
+    <span class="meta-badge">+ 6 Posten</span>
+    <span class="meta-badge">👤 4–5 Personen / Gruppe</span>
+  </div>
+</header>
+
+<div class="overview-bar">
+  <div class="overview-item">🎯 Ziel: <span>Grundlagen der Ersten Hilfe sicher anwenden können</span></div>
+  <div class="overview-item">📍 Raum: <span>Turnhalle oder Aussengelände</span></div>
+  <div class="overview-item">🔄 Rotation: <span>alle 10 Min.</span></div>
+</div>
+
+<main>
+
+  <!-- ZEITPLAN -->
+  <div class="timeline-section">
+    <div class="section-label">Ablauf</div>
+    <h2>Zeitplan (80 Minuten)</h2>
+    <div class="timeline">
+      <div class="tl-time">0'</div>
+      <div class="tl-content"><strong>Einführung & Gruppen bilden</strong><small>Ablauf erklären, Materialien verteilen, Sicherheitsregeln</small></div>
+      <div class="tl-time">10'</div>
+      <div class="tl-content"><strong>Postenlauf startet</strong><small>6 Gruppen, 6 Posten gleichzeitig</small></div>
+      <div class="tl-time">20'</div>
+      <div class="tl-content"><strong>Rotation 1</strong><small>Signal (Pfeife), 2 Min. Wechsel</small></div>
+      <div class="tl-time">32'</div>
+      <div class="tl-content"><strong>Rotation 2</strong></div>
+      <div class="tl-time">44'</div>
+      <div class="tl-content"><strong>Rotation 3</strong></div>
+      <div class="tl-time">56'</div>
+      <div class="tl-content"><strong>Rotation 4</strong></div>
+      <div class="tl-time">68'</div>
+      <div class="tl-content"><strong>Rotation 5</strong><small>Letzte Runde</small></div>
+      <div class="tl-time">70'</div>
+      <div class="tl-content"><strong>Abschluss & Auswertung</strong><small>Plenum, häufige Fehler besprechen, Quiz-Fragen</small></div>
+      <div class="tl-time">80'</div>
+      <div class="tl-content"><strong>Ende – Aufräumen</strong></div>
+    </div>
+  </div>
+
+  <!-- POSTEN -->
+  <div class="section-label" style="margin-bottom:0.75rem;">Posten – Klicken zum Aufklappen</div>
+  <div class="posten-grid" id="postenGrid">
+
+    <!-- P1 -->
+    <div class="posten-card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="posten-nr">1</div>
+        <div class="card-title">
+          <h3>Notruf absetzen</h3>
+          <div class="tag">Kommunikation · 10 Min.</div>
+        </div>
+        <div class="expand-icon">+</div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-pill">📞 Rollenspiel</span>
+          <span class="info-pill green">✓ Kein Material</span>
+        </div>
+        <div class="body-section">
+          <h4>Lernziel</h4>
+          <p>Schüler:innen können einen Notruf strukturiert und vollständig absetzen (5 W-Fragen).</p>
+        </div>
+        <div class="body-section">
+          <h4>Material</h4>
+          <ul>
+            <li>2 Spielzeug-Telefone (oder Attrappen)</li>
+            <li>Szenario-Karten (4 verschiedene)</li>
+            <li>Merkblatt «5 W-Fragen»</li>
+          </ul>
+        </div>
+        <div class="body-section">
+          <h4>Ablauf</h4>
+          <ol class="steps">
+            <li>Eine Person zieht eine Szenario-Karte und liest sie vor.</li>
+            <li>Eine weitere Person spielt die «Leitstelle» (mit Merkblatt).</li>
+            <li>Notruf wird laut geübt – die Gruppe hört zu und notiert Fehlendes.</li>
+            <li>Kurze Besprechung, dann Rollentausch.</li>
+          </ol>
+        </div>
+        <div class="tip-box">💡 Notrufnummern CH: <strong>144</strong> Sanität · <strong>117</strong> Polizei · <strong>118</strong> Feuerwehr · <strong>112</strong> europaweit</div>
+        <div class="body-section" style="margin-top:0.8rem;">
+          <h4>5 W-Fragen</h4>
+          <ul>
+            <li><strong>Wo</strong> ist der Unfall passiert?</li>
+            <li><strong>Was</strong> ist passiert?</li>
+            <li><strong>Wie viele</strong> Personen sind betroffen?</li>
+            <li><strong>Welche</strong> Verletzungen sind sichtbar?</li>
+            <li><strong>Wer</strong> ruft an? (Name, Rückrufnummer)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="posten-card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="posten-nr">2</div>
+        <div class="card-title">
+          <h3>Stabile Seitenlage</h3>
+          <div class="tag">Bewusstlosigkeit · 10 Min.</div>
+        </div>
+        <div class="expand-icon">+</div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-pill">🧍 Praktisch</span>
+          <span class="info-pill yellow">⚠ Matte nötig</span>
+        </div>
+        <div class="body-section">
+          <h4>Lernziel</h4>
+          <p>Schüler:innen können eine bewusstlose, atmende Person korrekt in die stabile Seitenlage bringen und überwachen.</p>
+        </div>
+        <div class="body-section">
+          <h4>Material</h4>
+          <ul>
+            <li>Gymnastikmatte (1 pro Posten)</li>
+            <li>Anleitung mit Fotos (laminiert)</li>
+          </ul>
+        </div>
+        <div class="body-section">
+          <h4>Ablauf</h4>
+          <ol class="steps">
+            <li>Situation prüfen: Ansprechen, Schultern schütteln – keine Reaktion.</li>
+            <li>Notruf 144 delegieren: «Du dort – ruf 144 an!»</li>
+            <li>Arm auf eigener Seite im rechten Winkel ausstrecken.</li>
+            <li>Gegenüberliegenden Arm auf die Wange legen (Handrücken nach oben).</li>
+            <li>Gegenüberliegendes Knie anwinkeln, Person auf die Seite drehen.</li>
+            <li>Kopf leicht überstrecken, Mund öffnet sich leicht → Atemweg frei.</li>
+            <li>Atmung laufend kontrollieren, bis Rettungsdienst eintrifft.</li>
+          </ol>
+        </div>
+        <div class="tip-box">💡 Merke: Nur bei atmender Person! Keine Atmung → sofort Herzdruckmassage (→ Posten 3)</div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="posten-card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="posten-nr">3</div>
+        <div class="card-title">
+          <h3>Herzdruckmassage (CPR)</h3>
+          <div class="tag">Herz-Kreislauf-Stillstand · 10 Min.</div>
+        </div>
+        <div class="expand-icon">+</div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-pill">❤️ Kernkompetenz</span>
+          <span class="info-pill yellow">⚠ Übungspuppe nötig</span>
+        </div>
+        <div class="body-section">
+          <h4>Lernziel</h4>
+          <p>Schüler:innen können eine Herzdruckmassage korrekt durchführen: Rhythmus, Tiefe, Handposition.</p>
+        </div>
+        <div class="body-section">
+          <h4>Material</h4>
+          <ul>
+            <li>1 CPR-Übungspuppe (z. B. Little Anne oder einfache Variante)</li>
+            <li>Desinfektionsmittel / Einwegfolien für Mundstück</li>
+            <li>Timer oder Metronom-App (100–120 bpm)</li>
+          </ul>
+        </div>
+        <div class="body-section">
+          <h4>Ablauf</h4>
+          <ol class="steps">
+            <li>Sicherheit prüfen, Person ansprechen, keine Reaktion.</li>
+            <li>Notruf delegieren, AED anfordern.</li>
+            <li>Handballen auf Brustbeinmitte legen, zweite Hand oben drauf, Finger verschränkt.</li>
+            <li>Arme gestreckt, senkrecht drücken: <strong>5–6 cm tief</strong>, 100–120 Mal/Min.</li>
+            <li>Nach 30 Druckmassagen: 2 Beatmungen (falls trainiert). Alternativ: nur drücken!</li>
+            <li>Nicht aufhören bis Rettungsdienst übernimmt → Wechsel alle 2 Min.</li>
+          </ol>
+        </div>
+        <div class="tip-box">💡 Rhythmushilfe: Song «Stayin' Alive» von Bee Gees hat exakt ~100 bpm!</div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="posten-card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="posten-nr">4</div>
+        <div class="card-title">
+          <h3>Wunden versorgen</h3>
+          <div class="tag">Blutungen · 10 Min.</div>
+        </div>
+        <div class="expand-icon">+</div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-pill">🩹 Praktisch</span>
+          <span class="info-pill green">✓ Verbandsmaterial</span>
+        </div>
+        <div class="body-section">
+          <h4>Lernziel</h4>
+          <p>Schüler:innen können eine Wunde reinigen, abdecken und einen Druckverband anlegen.</p>
+        </div>
+        <div class="body-section">
+          <h4>Material</h4>
+          <ul>
+            <li>Mullbinden (verschiedene Breiten)</li>
+            <li>Pflaster (sortiert)</li>
+            <li>Sterilkompressen</li>
+            <li>Einweghandschuhe (Latex-frei)</li>
+            <li>Übungsarm oder eigener Unterarm</li>
+            <li>Szenario-Karten (Schürfwunde, Schnittwunde, starke Blutung)</li>
+          </ul>
+        </div>
+        <div class="body-section">
+          <h4>Ablauf</h4>
+          <ol class="steps">
+            <li>Handschuhe anziehen (Eigenschutz!).</li>
+            <li>Wunde beurteilen: Szenario-Karte lesen.</li>
+            <li>Bei kleiner Wunde: reinigen, Pflaster anlegen.</li>
+            <li>Bei starker Blutung: Sterile Kompresse auflegen, mit Binde fixieren, Druck ausüben.</li>
+            <li>Betroffene Person beruhigen und lagern.</li>
+          </ol>
+        </div>
+        <div class="tip-box">💡 Kein Tourniquet (Abbinden) bei normalen Blutungen! Nur bei lebensbedrohlichen Extremitätenblutungen und wenn kein anderes Mittel verfügbar.</div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="posten-card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="posten-nr">5</div>
+        <div class="card-title">
+          <h3>Verbrennungen & Verätzungen</h3>
+          <div class="tag">Thermische Verletzungen · 10 Min.</div>
+        </div>
+        <div class="expand-icon">+</div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-pill">🔥 Theorie + Praxis</span>
+          <span class="info-pill green">✓ Wasser reicht</span>
+        </div>
+        <div class="body-section">
+          <h4>Lernziel</h4>
+          <p>Schüler:innen wissen, was bei Verbrennungen, Verbrühungen und Verätzungen sofort zu tun ist.</p>
+        </div>
+        <div class="body-section">
+          <h4>Material</h4>
+          <ul>
+            <li>Schüssel mit kühlem Wasser (~20°C)</li>
+            <li>Sterile Wundfolie / Frischhaltefolie</li>
+            <li>Fallkarten (3 verschiedene Szenarien)</li>
+            <li>Merkblatt Schweregrade</li>
+          </ul>
+        </div>
+        <div class="body-section">
+          <h4>Ablauf</h4>
+          <ol class="steps">
+            <li>Fallkarte lesen und Schweregrad einschätzen (Grad 1–3).</li>
+            <li>Verbrennung: sofort 10–15 Min. mit lauwarmem Wasser kühlen (nicht eiskaltes Wasser!).</li>
+            <li>Kleidung vorsichtig entfernen, sofern nicht festgeklebt.</li>
+            <li>Locker mit steriler Folie abdecken – keine Cremes, keine Butter!</li>
+            <li>Ab Grad 2 (Blasen): 144 anrufen.</li>
+            <li>Bei Verätzung: Auge/Haut sofort mind. 10 Min. mit Wasser spülen.</li>
+          </ol>
+        </div>
+        <div class="tip-box">💡 Faustregel: Handfläche der betroffenen Person = 1% Körperoberfläche. Ab 5% (Kind) → immer Notruf!</div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="posten-card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="posten-nr">6</div>
+        <div class="card-title">
+          <h3>Erste-Hilfe-Quiz</h3>
+          <div class="tag">Wissenscheck · 10 Min.</div>
+        </div>
+        <div class="expand-icon">+</div>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-pill">🧠 Kognitiv</span>
+          <span class="info-pill green">✓ Kein Material</span>
+        </div>
+        <div class="body-section">
+          <h4>Lernziel</h4>
+          <p>Schüler:innen können Erste-Hilfe-Wissen abrufen und Fehler in Szenarien erkennen.</p>
+        </div>
+        <div class="body-section">
+          <h4>Material</h4>
+          <ul>
+            <li>Quiz-Karten (15 Fragen, laminiert)</li>
+            <li>Antwortkärtchen (A / B / C) oder Whiteboard</li>
+            <li>Lösungsbogen (für Selbstkontrolle)</li>
+          </ul>
+        </div>
+        <div class="body-section">
+          <h4>Beispiel-Fragen</h4>
+          <ul>
+            <li>Wie viele cm tief drückt man bei der Herzdruckmassage?</li>
+            <li>Welche Zahl ruft man in der Schweiz bei einem Notfall an?</li>
+            <li>Was macht man NICHT bei einer Verbrennung?</li>
+            <li>Wann bringt man jemanden NICHT in die stabile Seitenlage?</li>
+            <li>Was bedeuten die 5 W-Fragen?</li>
+          </ul>
+        </div>
+        <div class="body-section">
+          <h4>Spielvariante</h4>
+          <p>Gruppe teilt sich in 2 Teams auf. Wer zuerst die richtige Antwort hält, bekommt einen Punkt. Team mit den meisten Punkten gewinnt.</p>
+        </div>
+        <div class="tip-box">💡 Dieser Posten kann auch als «Warteposten» dienen, falls eine Gruppe früher fertig ist.</div>
+      </div>
+    </div>
+
+  </div><!-- /posten-grid -->
+
+  <!-- HINWEISE FÜR LEHRPERSON -->
+  <div class="hinweise-section">
+    <div class="section-label">Für die Lehrperson</div>
+    <h2>Vorbereitung & Hinweise</h2>
+    <div class="hinweise-grid">
+      <div class="hinweis-box">
+        <h4>Material Checkliste</h4>
+        <ul>
+          <li>CPR-Übungspuppe (1 Stk.)</li>
+          <li>Gymnastikmatte (mind. 1 Stk.)</li>
+          <li>Verbandsmaterial-Set</li>
+          <li>Einweghandschuhe (Latex-frei)</li>
+          <li>Spielzeugtelefone (2 Stk.)</li>
+          <li>Szenario-Karten (laminiert)</li>
+          <li>Quiz-Karten + Lösungen</li>
+          <li>Schüssel + Frischhaltefolie</li>
+          <li>Timer / Pfeife für Rotation</li>
+        </ul>
+      </div>
+      <div class="hinweis-box">
+        <h4>Gruppen-Einteilung</h4>
+        <ul>
+          <li>Ideal: 6 Gruppen à 4–5 SuS</li>
+          <li>Jede Gruppe startet an einem anderen Posten</li>
+          <li>Rotation per Pfeifensignal alle 10 Min.</li>
+          <li>2 Min. Wechselzeit einplanen</li>
+          <li>Bei weniger Gruppen: Posten 6 als Pufferposten</li>
+        </ul>
+      </div>
+      <div class="hinweis-box">
+        <h4>Sicherheit</h4>
+        <ul>
+          <li>Latex-freie Handschuhe bereitstellen</li>
+          <li>Auf Allergien achten (v. a. Latex)</li>
+          <li>CPR: Nur auf Puppe, nie auf Menschen üben</li>
+          <li>Kühlung: Lauwarmes Wasser, kein Eiswasser</li>
+          <li>Ernsthafte Verletzungen sofort melden</li>
+        </ul>
+      </div>
+      <div class="hinweis-box">
+        <h4>Differenzierung</h4>
+        <ul>
+          <li>Merkblätter an jedem Posten für SuS mit Bedarf</li>
+          <li>Anspruchsvolle Szenarien für schnelle Gruppen</li>
+          <li>Partnerarbeit bei praktischen Posten</li>
+          <li>Quiz: Zeitdruck variieren</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEOBACHTUNGSBOGEN -->
+  <div class="bogen-section">
+    <div class="section-label">Auswertung</div>
+    <h2>Beobachtungsbogen (Lehrperson)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Posten</th>
+          <th>Beobachtungskriterien</th>
+          <th>Bemerkungen</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>P1</strong><br>Notruf</td>
+          <td>
+            <ul class="criteria-list">
+              <li>Alle 5 W-Fragen genannt?</li>
+              <li>Ruhe bewahrt?</li>
+              <li>Richtige Nummer (144)?</li>
+            </ul>
+          </td>
+          <td style="min-width:120px; color:#aaa; font-size:0.8rem;">Notizen…</td>
+        </tr>
+        <tr>
+          <td><strong>P2</strong><br>Seitenlage</td>
+          <td>
+            <ul class="criteria-list">
+              <li>Handposition korrekt?</li>
+              <li>Kopf überstreckt?</li>
+              <li>Atmung kontrolliert?</li>
+            </ul>
+          </td>
+          <td style="color:#aaa; font-size:0.8rem;">Notizen…</td>
+        </tr>
+        <tr>
+          <td><strong>P3</strong><br>CPR</td>
+          <td>
+            <ul class="criteria-list">
+              <li>Druckpunkt korrekt?</li>
+              <li>Tiefe ca. 5–6 cm?</li>
+              <li>Rhythmus 100–120/Min.?</li>
+              <li>Ablösung nach 2 Min.?</li>
+            </ul>
+          </td>
+          <td style="color:#aaa; font-size:0.8rem;">Notizen…</td>
+        </tr>
+        <tr>
+          <td><strong>P4</strong><br>Wunden</td>
+          <td>
+            <ul class="criteria-list">
+              <li>Handschuhe angelegt?</li>
+              <li>Druckverband korrekt?</li>
+              <li>Situation beurteilt?</li>
+            </ul>
+          </td>
+          <td style="color:#aaa; font-size:0.8rem;">Notizen…</td>
+        </tr>
+        <tr>
+          <td><strong>P5</strong><br>Verbrennung</td>
+          <td>
+            <ul class="criteria-list">
+              <li>Kühldauer 10–15 Min.?</li>
+              <li>Keine Butter/Creme?</li>
+              <li>Schweregrad erkannt?</li>
+            </ul>
+          </td>
+          <td style="color:#aaa; font-size:0.8rem;">Notizen…</td>
+        </tr>
+        <tr>
+          <td><strong>P6</strong><br>Quiz</td>
+          <td>
+            <ul class="criteria-list">
+              <li>Aktive Beteiligung?</li>
+              <li>Ergebnisse besprochen?</li>
+            </ul>
+          </td>
+          <td style="color:#aaa; font-size:0.8rem;">Notizen…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  <span class="cross">+</span> Postenlauf Erste Hilfe · Sekundarschule · 80 Min. · Klasse 7–9
+</footer>
+
+<script>
+  function toggle(card) {
+    card.classList.toggle('expanded');
+  }
+</script>
+
+</body>
+</html>
